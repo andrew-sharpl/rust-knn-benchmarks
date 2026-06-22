@@ -7793,18 +7793,16 @@ a.anchor-link {
     white-space: normal;
   }
 </style>
+<!-- End of mermaid configuration --><!-- custom-style:start -->
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>&#129408;</text></svg>">
 <style type="text/css">
-  /* ---- page background ---- */
-  html { background: #1b2a4a !important; }   /* deep navy; change this hex to recolor */
+  html { background: #1b2a4a !important; }
   body.jp-Notebook {
     background: #1b2a4a !important;
     padding: 3rem 1rem !important;
     margin: 0 !important;
     max-width: none !important;
   }
-
-  /* ---- centered white card holding the content ---- */
   body.jp-Notebook > main {
     display: block !important;
     max-width: 900px !important;
@@ -7814,16 +7812,12 @@ a.anchor-link {
     border-radius: 10px !important;
     box-shadow: 0 4px 24px rgba(0,0,0,0.18) !important;
   }
-
-  /* keep plots and wide outputs inside the card */
   img, .jp-OutputArea img { max-width: 100% !important; height: auto !important; }
   .jp-Cell, .jp-OutputArea, .jp-RenderedHTMLCommon { max-width: 100% !important; }
-
-  /* let wide tables scroll horizontally instead of bursting the card */
   .jp-OutputArea-output { overflow-x: auto !important; }
 </style>
-
-<!-- End of mermaid configuration --></head>
+<!-- custom-style:end -->
+</head>
 <body class="jp-Notebook" data-jp-theme-light="true" data-jp-theme-name="JupyterLab Light">
 <main>
 <div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=73933e47-01ad-4c2a-a64d-c8314d3ff496">
@@ -7837,7 +7831,9 @@ a.anchor-link {
 <li>a choice of distance metric (euclidean, manhattan, cosine)</li>
 <li>a choice of brute-force or KD-tree search</li>
 </ul>
-<p>It installs from PyPI as an ordinary wheel and needs no C or C++ toolchain on the user's machine.</p>
+<p>It installs from PyPI as an ordinary wheel and needs no C or C++ toolchain on the user's machine.
+You can run <code>pip install rust-knn</code> to use this library in your projects. To see the packages or source code, click here:
+(<a href="https://pypi.org/project/rust-knn/">PyPI</a>, <a href="https://crates.io/crates/rust-knn">crates.io</a>, <a href="https://github.com/andrew-sharpl/rust-knn-benchmarks">GitHub</a>)</p>
 <p>This notebook measures one thing carefully: how long <code>predict</code> takes, and how that compares to scikit-learn's <code>KNeighborsClassifier</code> across two axes, training-set size and dimensionality.</p>
 <p>The short version: for small datasets, rust-knn is the fastest option here, several times quicker than scikit-learn. As the training set grows, or as dimensionality climbs, scikit-learn pulls ahead, because its distance computation runs through a vectorized, cache-blocked BLAS routine that rust-knn's current scalar loop does not yet match. Mapping where each one wins is the point of what follows.</p>
 </div>
