@@ -1,9 +1,15 @@
 import time
 import numpy as np
 import pandas as pd
+from importlib.metadata import version as _pkg_version
 from sklearn.neighbors import KNeighborsClassifier
 import knn
 from itertools import product
+
+
+def rust_knn_version() -> str:
+    """Version of the installed rust-knn package (e.g. '0.1.3')."""
+    return _pkg_version("rust-knn")
 
 _METRIC_DICT = {
     "euclidean": knn.Metric.Euclidean,
@@ -58,30 +64,24 @@ def time_predict(model, X_test: np.ndarray) -> tuple[float, list[int]]:
     return elapsed, list(preds)
 
 
-def run_single(
+def _time_all_combos(
+    X_train: np.ndarray,
+    y_train: np.ndarray,
+    X_test: np.ndarray,
+    k: int,
+    metric: str,
+    runs: int,
+    warmup: int,
     n_train: int,
     dim: int,
     n_queries: int,
-    k: int = 3,
-    metric: str = "euclidean",
-    n_classes: int = 3,
-    seed: int = 42,
-    runs: int = 7,
-    warmup: int = 1,
-) -> pd.DataFrame:
-    """Benchmark all library/algorithm combinations on a single (n_train, dim) config.
+) -> list[dict]:
+    """Time all four library/algorithm combos and verify predictions agree.
 
-    Returns a long-format DataFrame, one row per combo.
-    Columns: n_train, dim, n_queries, k, metric, library, algorithm, median_s, error.
-    Rows for combos that failed to fit have median_s=NaN and error=<message>.
+    Returns a list of row dicts (one per combo). Rows for combos that failed
+    to fit have median_s=NaN and error=<message>.
     Raises AssertionError if successful combos disagree on predictions.
     """
-    # Fixed seed so re-runs produce identical data; only the implementation varies.
-    rng = np.random.default_rng(seed)
-    X_train = rng.random((n_train, dim))
-    y_train = rng.integers(0, n_classes, size=n_train).astype(np.int64)
-    X_test = rng.random((n_queries, dim))
-
     rows = []
     # Keyed by (library, algorithm) so we can compare predictions across combos after the loop.
     predictions_by_combo: dict[tuple[str, str], list[int]] = {}
@@ -134,6 +134,38 @@ def run_single(
                     f"(n_train={n_train}, dim={dim}, k={k}, metric={metric})"
                 )
 
+    return rows
+
+
+def run_single(
+    n_train: int,
+    dim: int,
+    n_queries: int,
+    k: int = 3,
+    metric: str = "euclidean",
+    n_classes: int = 3,
+    seed: int = 42,
+    runs: int = 7,
+    warmup: int = 1,
+) -> pd.DataFrame:
+    """Benchmark all library/algorithm combinations on a single (n_train, dim) config.
+
+    Returns a long-format DataFrame, one row per combo.
+    Columns: n_train, dim, n_queries, k, metric, library, algorithm, median_s, error.
+    Rows for combos that failed to fit have median_s=NaN and error=<message>.
+    Raises AssertionError if successful combos disagree on predictions.
+    """
+    # Fixed seed so re-runs produce identical data; only the implementation varies.
+    rng = np.random.default_rng(seed)
+    X_train = rng.random((n_train, dim))
+    y_train = rng.integers(0, n_classes, size=n_train).astype(np.int64)
+    X_test = rng.random((n_queries, dim))
+
+    rows = _time_all_combos(
+        X_train, y_train, X_test,
+        k=k, metric=metric, runs=runs, warmup=warmup,
+        n_train=n_train, dim=dim, n_queries=n_queries,
+    )
     return pd.DataFrame(rows)
 
 
